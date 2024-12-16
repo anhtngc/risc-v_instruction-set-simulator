@@ -523,16 +523,20 @@ class machineCode_parser:
         self.registerFiles['zero'] = 0
 
     def print_results(self):
-        # in kết quả ra file
         file_out = open('registerFiles.txt', 'w')
-        # in dữ liệu thanh ghi
+        # in dữ liệu thanh ghi dưới dạng hex
         for k,v in self.registerFiles.items():
-            file_out.write(str(k) + ': ' + str(v) + '\n')
+            # Sử dụng & 0xFFFFFFFF để đảm bảo luôn là 32-bit unsigned
+            hex_value = hex((v + (1 << 32)) & 0xFFFFFFFF)[2:].zfill(8)
+            file_out.write(str(k) + ': 0x' + hex_value + '\n')
         file_out.close()
+    
         file_out = open('dataMemory.txt', 'w')
         # in du lieu dataMemory
         for k,v in self.dataMemory.items():
-            file_out.write(str(k) + ': ' + str(v) + '\n')
+            # Tương tự, sử dụng & 0xFFFFFFFF để đảm bảo luôn là 32-bit unsigned
+            hex_value = hex((v + (1 << 32)) & 0xFFFFFFFF)[2:].zfill(8)
+            file_out.write(hex_value + '\n')
         file_out.close()
 
     def save_valuesR2dataMemory(self):
