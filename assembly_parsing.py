@@ -14,7 +14,9 @@ def remove_comments(lines):
 
 def calculate_label_offsets(lines):
     labels = {}
+    instruction_addresses = []  # Store addresses of all instructions
     line_number = 0
+    
     for line in lines:
         line = line.strip()
         # Ignore blank lines and comments
@@ -26,14 +28,17 @@ def calculate_label_offsets(lines):
             label = label_part.strip()
             labels[label] = line_number * 4  # address = number of lines * 4
             
-            # If there is an adjacent command after the label, treat this as a line command
-            if instruction_part:
+            # If there is an adjacent instruction after the label, treat this as a line
+            if instruction_part and instruction_part[0].strip():
+                instruction_addresses.append(line_number * 4)
                 line_number += 1
         else:
+            instruction_addresses.append(line_number * 4)
             line_number += 1
-    return labels
+            
+    return labels, instruction_addresses
 
-def parse_instruction(instruction_line, labels=None, current_address=None):
+def parse_instruction(instruction_line, labels=None, current_address=None, instruction_addresses=None):
     # Remove comments and clean up the line
     if '#' in instruction_line:
         instruction_line = instruction_line.split('#')[0]
@@ -97,18 +102,19 @@ def parse_instruction(instruction_line, labels=None, current_address=None):
         elif instruction in sb_type_instructions and labels and current_address is not None:
             target_label = parts[3]
             if target_label in labels:
-                imm_offset = (labels[target_label] - current_address) 
-                return {"type": "SB", "instruction": instruction, "rs1": parts[1], "rs2": parts[2], "imm": imm_offset}
-
+                target_address = labels[target_label]
+                imm_offset = target_address - current_address
+            return {"type": "SB", "instruction": instruction, "rs1": parts[1], "rs2": parts[2], "imm": imm_offset}
+        
         elif instruction in u_type_instructions:
             return {"type": "U", "instruction": instruction, "rd": parts[1], "imm": parts[2]}
         
         elif instruction in uj_type_instructions and labels and current_address is not None:
             target_label = parts[2]
             if target_label in labels:
-                # Calculate offset as the difference between the label address and the current address, then shift by 1 for JAL
-                imm_offset = (labels[target_label] - current_address)
-                return {"type": "UJ", "instruction": instruction, "rd": parts[1], "imm": imm_offset}
+                target_address = labels[target_label]
+                imm_offset = target_address - current_address
+            return {"type": "UJ", "instruction": instruction, "rd": parts[1], "imm": imm_offset}
 
     except IndexError:
         print(f"Warning: Invalid instruction format: {instruction_line}")

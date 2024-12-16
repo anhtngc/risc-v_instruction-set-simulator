@@ -10,24 +10,25 @@ try:
     with open(input_filename, 'r') as fhand:
         lines = fhand.readlines()
 
-    # Calculate label offsets first
-    labels = calculate_label_offsets(lines)
+    # Calculate label offsets and instruction addresses
+    labels, instruction_addresses = calculate_label_offsets(lines)
 
     instructions = remove_comments(lines) 
         
     results = []
-    line_number = 0
+    current_instruction = 0
 
     # Process each line
     for line in lines:
         line = line.strip()
-        if not line or line.endswith(':') or line.startswith('#'):
+        if not line or line.startswith('.') or line.startswith('#'):
             continue
 
-        current_address = line_number * 4 
+        # Get current address from instruction_addresses if available
+        current_address = instruction_addresses[current_instruction] if current_instruction < len(instruction_addresses) else None
 
         # Parse instruction with label information
-        parsed_fields = parse_instruction(line, labels, current_address)
+        parsed_fields = parse_instruction(line, labels, current_address, instruction_addresses)
             
         if parsed_fields is None:
             continue
@@ -73,8 +74,7 @@ try:
                 "address": current_address,
                 "binary_code": binary_code
             })
-            
-        line_number += 1
+            current_instruction += 1
 
     # Write results to output file
     with open("binary.bin", 'w') as file:
