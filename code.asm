@@ -10,10 +10,6 @@ main:
     and x7, x5, x6          # x7 = x5 & x6 = 0x10000
     sll x8, x1, x2          # x8 = x1 << x2 (shift left logical)
     srl x9, x8, x2          # x9 = x8 >> x2 (shift right logical)
-end: auipc x17, 10000
-
-target: add x1, x2, x5
-	sub x5, x4, x7
     slt x10, x1, x2         # x10 = (x1 < x2) = 1 (set less than)
     add x11, x6, x7         # x11 = x6 + x7
     xor x12, x11, x8        # x12 = x11 ^ x8
@@ -21,7 +17,10 @@ target: add x1, x2, x5
     or x14, x8, x9          # x14 = x8 | x9
     sub x15, x14, x11       # x15 = x14 - x11
     beq x5, x6, end
-    jal x1, target	
+    jal x1, target
+end: auipc x17, 10000
+target: add x1, x2, x5
+	sub x5, x4, x7	
 
     # L?u các giá tr? t? x1 ??n x15 vào vùng nh? array
     la x31, array           # L?y ??a ch? vùng nh? array vào x31
